@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 echo "=== Ansible + Semaphore Kurulum Scripti ==="
 
@@ -23,12 +23,18 @@ echo
 echo "Sistem paketleri güncelleniyor..."
 dnf update -y
 
-# 3. MariaDB kurulumu ve servisi başlat
+# 3. wget yoksa yükle
+if ! command -v wget &>/dev/null; then
+    echo "wget bulunamadı, yükleniyor..."
+    dnf install -y wget
+fi
+
+# 4. MariaDB kurulumu ve servisi başlat
 echo "MariaDB kuruluyor..."
 dnf install -y mariadb-server
 systemctl enable --now mariadb
 
-# 4. MariaDB güvenlik ve DB oluşturma
+# 5. MariaDB güvenlik ve DB oluşturma
 echo "MariaDB güvenlik ayarları ve Semaphore DB oluşturuluyor..."
 mysql -u root <<EOF
 CREATE DATABASE IF NOT EXISTS semaphore CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -37,7 +43,7 @@ GRANT ALL PRIVILEGES ON semaphore.* TO '$SEMAPHORE_DB_USER'@'localhost';
 FLUSH PRIVILEGES;
 EOF
 
-# 5. Semaphore kurulumu
+# 6. Semaphore kurulumu
 echo "Semaphore kuruluyor..."
 VER=$(curl -s https://api.github.com/repos/semaphoreui/semaphore/releases/latest \
   | grep '"tag_name":' | head -1 | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
@@ -45,7 +51,8 @@ VER=$(curl -s https://api.github.com/repos/semaphoreui/semaphore/releases/latest
 wget -q "https://github.com/semaphoreui/semaphore/releases/download/v${VER}/semaphore_${VER}_linux_amd64.rpm"
 dnf install -y "semaphore_${VER}_linux_amd64.rpm"
 
-# 6. Semaphore konfig dosyası oluştur
+# 7. Semaphore konfig dosyası oluştur
+echo "Config dosyası oluşturuluyor..."
 mkdir -p /etc/semaphore
 cat > /etc/semaphore/config.json <<EOL
 {
@@ -65,16 +72,17 @@ cat > /etc/semaphore/config.json <<EOL
 }
 EOL
 
-# 7. Semaphore setup
-/usr/bin/semaphore setup --config /etc/semaphore/config.json <<EOF
-1
-/var/lib/semaphore
-$SEMAPHORE_ADMIN_EMAIL
-$SEMAPHORE_ADMIN_USER
-$SEMAPHORE_ADMIN_PASS
-EOF
+# 8. Admin kullanıcı oluşturma
+echo "Admin kullanıcısı ekleniyor..."
+/usr/bin/semaphore user add \
+  --config /etc/semaphore/config.json \
+  --login "$SEMAPHORE_ADMIN_USER" \
+  --name "$SEMAPHORE_ADMIN_USER" \
+  --email "$SEMAPHORE_ADMIN_EMAIL" \
+  --password "$SEMAPHORE_ADMIN_PASS"
 
-# 8. Semaphore server başlat
+# 9. Semaphore server başlat
+echo "Semaphore servisi başlatılıyor..."
 nohup /usr/bin/semaphore server --config /etc/semaphore/config.json > /var/log/semaphore.log 2>&1 &
 
 echo "Kurulum tamamlandı! Web arayüzüne http://<sunucu_ip>:3000 üzerinden erişebilirsiniz."
