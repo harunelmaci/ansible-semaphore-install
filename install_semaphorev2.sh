@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-echo "=== Ansible + Semaphore Kurulum Scripti ==="
+echo "=== Ansible + Semaphore Kurulum Scripti (AlmaLinux 9) ==="
 
 # 1. Kullanıcıdan değerleri al
 read -p "MariaDB kullanıcı adını girin (default: semaphore): " SEMAPHORE_DB_USER
@@ -19,40 +19,35 @@ read -p "Semaphore admin emailini girin: " SEMAPHORE_ADMIN_EMAIL
 read -sp "Semaphore admin şifresini girin: " SEMAPHORE_ADMIN_PASS
 echo
 
-# 2. Sistem paketlerini güncelle
-echo "Sistem paketleri güncelleniyor..."
-dnf update -y
+# 2. Gerekli paketler
+echo "[*] Sistem paketleri yükleniyor..."
+dnf install -y epel-release
+dnf install -y wget curl git tar unzip openssl ansible mariadb-server
 
-# 3. wget yoksa yükle
-if ! command -v wget &>/dev/null; then
-    echo "wget bulunamadı, yükleniyor..."
-    dnf install -y wget
-fi
-
-# 4. MariaDB kurulumu ve servisi başlat
-echo "MariaDB kuruluyor..."
-dnf install -y mariadb-server
+# 3. MariaDB başlat
+echo "[*] MariaDB başlatılıyor..."
 systemctl enable --now mariadb
 
-# 5. MariaDB güvenlik ve DB oluşturma
-echo "MariaDB güvenlik ayarları ve Semaphore DB oluşturuluyor..."
+# 4. Veritabanı ve kullanıcı
+echo "[*] MariaDB ayarlanıyor..."
 mysql -u root <<EOF
 CREATE DATABASE IF NOT EXISTS semaphore CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-CREATE USER IF NOT EXISTS '$SEMAPHORE_DB_USER'@'localhost' IDENTIFIED BY '$SEMAPHORE_DB_PASS';
+CREATE USER IF NOT EXISTS '$SEMAPHORE_DB_USER'@'localhost';
+ALTER USER '$SEMAPHORE_DB_USER'@'localhost' IDENTIFIED BY '$SEMAPHORE_DB_PASS';
 GRANT ALL PRIVILEGES ON semaphore.* TO '$SEMAPHORE_DB_USER'@'localhost';
 FLUSH PRIVILEGES;
 EOF
 
-# 6. Semaphore kurulumu
-echo "Semaphore kuruluyor..."
+# 5. Semaphore indir & kur
+echo "[*] Semaphore indiriliyor..."
 VER=$(curl -s https://api.github.com/repos/semaphoreui/semaphore/releases/latest \
   | grep '"tag_name":' | head -1 | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//')
 
 wget -q "https://github.com/semaphoreui/semaphore/releases/download/v${VER}/semaphore_${VER}_linux_amd64.rpm"
 dnf install -y "semaphore_${VER}_linux_amd64.rpm"
 
-# 7. Semaphore konfig dosyası oluştur
-echo "Config dosyası oluşturuluyor..."
+# 6. Config dosyası
+echo "[*] Config oluşturuluyor..."
 mkdir -p /etc/semaphore
 cat > /etc/semaphore/config.json <<EOL
 {
@@ -72,8 +67,8 @@ cat > /etc/semaphore/config.json <<EOL
 }
 EOL
 
-# 8. Admin kullanıcı oluşturma
-echo "Admin kullanıcısı ekleniyor..."
+# 7. Admin kullanıcı ekle
+echo "[*] Admin kullanıcısı ekleniyor..."
 /usr/bin/semaphore user add \
   --config /etc/semaphore/config.json \
   --login "$SEMAPHORE_ADMIN_USER" \
@@ -81,8 +76,29 @@ echo "Admin kullanıcısı ekleniyor..."
   --email "$SEMAPHORE_ADMIN_EMAIL" \
   --password "$SEMAPHORE_ADMIN_PASS"
 
-# 9. Semaphore server başlat
-echo "Semaphore servisi başlatılıyor..."
-nohup /usr/bin/semaphore server --config /etc/semaphore/config.json > /var/log/semaphore.log 2>&1 &
+# 8. systemd servis dosyası oluştur
+echo "[*] systemd servis dosyası ekleniyor..."
+cat > /etc/systemd/system/semaphore.service <<EOF
+[Unit]
+Description=Semaphore Ansible UI
+After=network.target mariadb.service
 
-echo "Kurulum tamamlandı! Web arayüzüne http://<sunucu_ip>:3000 üzerinden erişebilirsiniz."
+[Service]
+ExecStart=/usr/bin/semaphore server --config /etc/semaphore/config.json
+WorkingDirectory=/etc/semaphore
+Restart=always
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 9. Servisi enable & başlat
+systemctl daemon-reload
+systemctl enable --now semaphore
+
+echo "Kurulum tamamlandı!"
+echo "Web arayüzü: http://<sunucu_ip>:3000"
+echo "Admin kullanıcı: $SEMAPHORE_ADMIN_USER / $SEMAPHORE_ADMIN_PASS"
+echo "Loglar: journalctl -u semaphore -f"
