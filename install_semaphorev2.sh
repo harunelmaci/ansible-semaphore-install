@@ -19,6 +19,8 @@ read -p "Semaphore admin emailini girin: " SEMAPHORE_ADMIN_EMAIL
 read -sp "Semaphore admin şifresini girin: " SEMAPHORE_ADMIN_PASS
 echo
 
+read -p "Public URL (örn: http://<sunucu_ip>:3000): " SEMAPHORE_PUBLIC_URL
+
 # 2. Gerekli paketler
 echo "[*] Sistem paketleri yükleniyor..."
 dnf install -y epel-release
@@ -63,7 +65,8 @@ cat > /etc/semaphore/config.json <<EOL
     "web_port": 3000,
     "cookie_hash": "$(openssl rand -base64 32)",
     "cookie_encryption": "$(openssl rand -base64 32)",
-    "access_key_encryption": "$(openssl rand -base64 32)"
+    "access_key_encryption": "$(openssl rand -base64 32)",
+    "public_url": "$SEMAPHORE_PUBLIC_URL"
 }
 EOL
 
@@ -99,6 +102,6 @@ systemctl daemon-reload
 systemctl enable --now semaphore
 
 echo "Kurulum tamamlandı!"
-echo "Web arayüzü: http://<sunucu_ip>:3000"
+echo "Web arayüzü: $SEMAPHORE_PUBLIC_URL"
 echo "Admin kullanıcı: $SEMAPHORE_ADMIN_USER / $SEMAPHORE_ADMIN_PASS"
 echo "Loglar: journalctl -u semaphore -f"
