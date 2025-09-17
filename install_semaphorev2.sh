@@ -19,7 +19,11 @@ read -p "Semaphore admin emailini girin: " SEMAPHORE_ADMIN_EMAIL
 read -sp "Semaphore admin şifresini girin: " SEMAPHORE_ADMIN_PASS
 echo
 
-read -p "Public URL (örn: http://<sunucu_ip>:3000): " SEMAPHORE_PUBLIC_URL
+# Otomatik IP tespit
+SERVER_IP=$(hostname -I | awk '{print $1}')
+DEFAULT_PUBLIC_URL="http://$SERVER_IP:3000"
+read -p "Public URL (default: $DEFAULT_PUBLIC_URL): " SEMAPHORE_PUBLIC_URL
+SEMAPHORE_PUBLIC_URL=${SEMAPHORE_PUBLIC_URL:-$DEFAULT_PUBLIC_URL}
 
 # 2. Gerekli paketler
 echo "[*] Sistem paketleri yükleniyor..."
