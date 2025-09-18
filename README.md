@@ -15,12 +15,10 @@ Kurulum sırasında gerekli tüm paketler yüklenir, MariaDB yapılandırılır,
 - 3000 portu boş olmalı (Semaphore bu portu dinler).
 - Kurulum sırasında admin email adresi girilmelidir (boş bırakılamaz).
 
+## Kurulum
 
-
-## 🔧 Kurulum
-
- AlmaLinux 9 - Ubuntu
-```bash
+ AlmaLinux 9
 bash <(curl -s https://raw.githubusercontent.com/harunelmaci/ansible-semaphore-install/main/install_semaphore_almalinux.sh)
 
+Ubuntu Linux
 bash <(curl -s https://raw.githubusercontent.com/harunelmaci/ansible-semaphore-install/main/install_semaphore_ubuntu.sh)
