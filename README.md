@@ -1,4 +1,4 @@
-# 🚀 Ansible + Semaphore Kurulum Scriptleri
+# Ansible + Semaphore Kurulum Scriptleri
 
 Bu repo, **AlmaLinux 9** ve **Ubuntu 22.04/24.04** üzerinde  
 **Ansible + MariaDB + Semaphore** kurulumunu tek satırda yapabilmeniz için hazırlanmıştır.  
