@@ -9,8 +9,8 @@ Kurulum sırasında gerekli tüm paketler yüklenir, MariaDB yapılandırılır,
 
 ## 🔧 Kurulum
 
-### AlmaLinux 9
+### AlmaLinux 9 - ### Ubuntu
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/harunelmaci/ansible-semaphore-install/main/install_semaphore_almalinux.sh)
-### Ubuntu
+
 bash <(curl -s https://raw.githubusercontent.com/harunelmaci/ansible-semaphore-install/main/install_semaphore_ubuntu.sh)
