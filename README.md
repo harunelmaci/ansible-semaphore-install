@@ -3,9 +3,19 @@
 Bu repo, **AlmaLinux 9** ve **Ubuntu 22.04/24.04** üzerinde  
 **Ansible + MariaDB + Semaphore** kurulumunu tek satırda yapabilmeniz için hazırlanmıştır.  
 
-Kurulum sırasında gerekli tüm paketler yüklenir, MariaDB yapılandırılır, Semaphore veritabanı migrasyonları uygulanır ve systemd servisi otomatik başlatılır. ✅
+Kurulum sırasında gerekli tüm paketler yüklenir, MariaDB yapılandırılır, Semaphore veritabanı migrasyonları uygulanır ve systemd servisi otomatik başlatılır.
 
----
+## Gereksinimler
+
+- Desteklenen işletim sistemleri:
+  - AlmaLinux 9
+  - Ubuntu 22.04 / 24.04
+- Sunucuda **root** yetkisine sahip olmalısınız.
+- İnternet erişimi olmalı (GitHub’dan paketler indiriliyor).
+- 3000 portu boş olmalı (Semaphore bu portu dinler).
+- Kurulum sırasında admin email adresi girilmelidir (boş bırakılamaz).
+
+
 
 ## 🔧 Kurulum
 
