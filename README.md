@@ -4,6 +4,8 @@ Bu repo, **AlmaLinux 9** ve **Ubuntu 22.04/24.04** üzerinde
 **Ansible + MariaDB + Semaphore** kurulumunu tek satırda yapabilmeniz için hazırlanmıştır.  
 
 Kurulum sırasında gerekli tüm paketler yüklenir, MariaDB yapılandırılır, Semaphore veritabanı migrasyonları uygulanır ve systemd servisi otomatik başlatılır.
+Ayrıca **Python `passlib` kütüphanesi** otomatik yüklenir; bu sayede Ansible ile parola hashleme sorunsuz çalışır.  
+
 
 ## Gereksinimler
 
