@@ -39,6 +39,10 @@ apt install -y wget curl git gnupg lsb-release software-properties-common
 echo "### Ansible kuruluyor..."
 apt install -y ansible
 
+echo "### Python3-pip ve passlib kuruluyor..."
+apt install -y python3-pip
+pip3 install passlib
+
 echo "### MariaDB kuruluyor..."
 apt install -y mariadb-server
 systemctl enable --now mariadb
