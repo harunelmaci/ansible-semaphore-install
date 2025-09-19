@@ -105,6 +105,10 @@ sudo dnf install -y wget curl git epel-release
 echo "### Ansible kuruluyor..."
 sudo dnf install -y ansible
 
+echo "### Python3-pip ve passlib kuruluyor..."
+dnf install -y python3-pip
+pip3 install passlib
+
 echo "### MariaDB kuruluyor..."
 sudo dnf install -y mariadb-server
 sudo systemctl enable --now mariadb
